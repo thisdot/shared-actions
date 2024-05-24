@@ -1,0 +1,49 @@
+name: Send a Slack notification when PRs are opened
+on:
+  workflow_call:
+    secrets:
+      OSS_SLACK_NOTIFICATION_WEBHOOK_URL:
+        description: The HTTP URL of the Slack webhook to send notifications to
+        required: true
+jobs:
+  send-slack-notification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: slackapi/slack-github-action@v1.26.0
+        name: Send the pull request notification to Slack
+        id: slack
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "A PR was just opened in ${{ github.event.repository.name }} :tada:",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*${{ github.event.pull_request.user.login }}* has just contributed to ${{ github.event.repository.name }} :partying_face:"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*${{ github.event.pull_request.user.login }}* made the following changes: <${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}> :eyes:",
+                    "emoji": true
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.OSS_SLACK_NOTIFICATION_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
